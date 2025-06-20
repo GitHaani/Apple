@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Analysis: Apple's Strategy in India</title>
+    <!-- Chosen Palette: Apple Inspired Neutrals (Light Gray, Graphite, Blue Accent) -->
+    <!-- Application Structure Plan: The application is designed as a single-page dashboard with a sticky top navigation for seamless exploration. The structure is thematic, not linear, to prioritize user-driven discovery. It starts with a 'Dashboard' view for high-level KPIs, followed by deep-dive sections: 'Marketing Playbook' for campaign analysis, 'Growth Ecosystem' for the pillars of retail/manufacturing/services, and 'Future Outlook' for competitive analysis and projections. This non-linear, dashboard-style structure was chosen to transform the dense report into an engaging and queryable tool, allowing users to quickly grasp key metrics or explore strategic areas of interest at their own pace. -->
+    <!-- Visualization & Content Choices: 1. Financials: Goal(Inform) -> Big number cards & Bar chart (Chart.js) -> Hover interaction -> Justification: Immediate impact & trend visibility. 2. Market Share (Volume vs. Value): Goal(Compare) -> Doughnut charts (Chart.js) -> Hover tooltips -> Justification: Clearly illustrates the core strategic success of value dominance. 3. Marketing Campaigns: Goal(Organize) -> Interactive cards (HTML/JS) -> Click to reveal details -> Justification: Breaks down text into digestible, engaging blocks. 4. Manufacturing Growth: Goal(Change) -> Line chart (Chart.js) -> Hover tooltips -> Justification: Visually represents the powerful growth trajectory. 5. Competitive Landscape: Goal(Compare) -> Grouped bar chart (Chart.js) -> Toggles for segments -> Justification: Enables direct, easy comparison. All choices adhere to the designed structure and prioritize interactivity and clarity. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f9fafb; /* A very light gray, almost white */
+        }
+        .nav-link {
+            transition: color 0.3s ease, border-bottom-color 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #007aff; /* Apple's signature blue */
+            border-bottom-color: #007aff;
+        }
+        .stat-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .campaign-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .campaign-card .details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        .campaign-card.open .details {
+            max-height: 500px; /* Adjust as needed */
+        }
+        .section-icon {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+        .btn-toggle {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-toggle.active {
+            background-color: #007aff;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .apple-logo {
+          display: inline-block;
+          width: 24px;
+          height: 29px;
+          background-color: #1d1d1f;
+          border-radius: 50% / 40%;
+          position: relative;
+        }
+        .apple-logo::before {
+          content: '';
+          position: absolute;
+          top: -10px;
+          left: 50%;
+          width: 12px;
+          height: 12px;
+          background-color: #1d1d1f;
+          border-radius: 50%;
+          transform: translateX(-50%);
+        }
+        .apple-logo::after {
+          content: '';
+          position: absolute;
+          top: -2px;
+          right: -2px;
+          width: 14px;
+          height: 14px;
+          background-color: #f9fafb;
+          border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="apple-logo"></div>
+                <h1 class="text-xl font-bold text-gray-900">Apple India Analysis</h1>
+            </div>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#dashboard" class="nav-link text-gray-600 font-semibold pb-1">Dashboard</a>
+                <a href="#marketing" class="nav-link text-gray-600 font-semibold pb-1">Marketing Playbook</a>
+                <a href="#ecosystem" class="nav-link text-gray-600 font-semibold pb-1">Growth Ecosystem</a>
+                <a href="#future" class="nav-link text-gray-600 font-semibold pb-1">Future Outlook</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+
+        <!-- Section 1: Dashboard -->
+        <section id="dashboard" class="mb-20 text-center">
+            <h2 class="text-4xl font-bold mb-4 text-gray-900">The India Dashboard</h2>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-12">
+                This dashboard provides a high-level overview of Apple India's exceptional performance. It highlights the key financial and market indicators that demonstrate the success of a deeply integrated strategy combining premium positioning, local manufacturing, and culturally resonant marketing.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div class="stat-card bg-white p-6 rounded-2xl shadow">
+                    <p class="text-gray-500 text-sm font-medium">FY24 REVENUE</p>
+                    <p class="text-4xl font-bold text-gray-900 mt-2">₹67,152 Cr</p>
+                    <p class="text-green-500 font-semibold mt-1">+36% YoY</p>
+                </div>
+                <div class="stat-card bg-white p-6 rounded-2xl shadow">
+                    <p class="text-gray-500 text-sm font-medium">FY24 NET PROFIT</p>
+                    <p class="text-4xl font-bold text-gray-900 mt-2">₹2,746 Cr</p>
+                    <p class="text-green-500 font-semibold mt-1">+23% YoY</p>
+                </div>
+                <div class="stat-card bg-white p-6 rounded-2xl shadow">
+                    <p class="text-gray-500 text-sm font-medium">IPHONE VALUE SHARE</p>
+                    <p class="text-4xl font-bold text-gray-900 mt-2">26%</p>
+                    <p class="text-gray-600 mt-1">Market Leader (Q1 2025)</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div class="bg-white p-6 rounded-2xl shadow">
+                    <h3 class="font-bold text-xl mb-1 text-gray-900">Accelerating Revenue Growth</h3>
+                    <p class="text-gray-600 text-sm mb-4">Total revenue shows a powerful upward trend, driven by the premiumization strategy and expansion of local operations.</p>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow">
+                    <h3 class="font-bold text-xl mb-1 text-gray-900">Market Share: Value over Volume</h3>
+                     <p class="text-gray-600 text-sm mb-4">Apple's strategy focuses on leading the market in value, not just units sold, capturing the most profitable segment.</p>
+                    <div class="flex flex-col md:flex-row justify-around items-center h-full">
+                        <div class="w-full md:w-1/2 p-2">
+                             <h4 class="text-center font-semibold text-gray-700">Volume Share (Units)</h4>
+                             <div class="chart-container h-48 md:h-64">
+                                <canvas id="volumeShareChart"></canvas>
+                             </div>
+                        </div>
+                        <div class="w-full md:w-1/2 p-2 mt-4 md:mt-0">
+                            <h4 class="text-center font-semibold text-gray-700">Value Share (Revenue)</h4>
+                             <div class="chart-container h-48 md:h-64">
+                                <canvas id="valueShareChart"></canvas>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Marketing Playbook -->
+        <section id="marketing" class="mb-20">
+            <div class="text-center">
+                <h2 class="text-4xl font-bold mb-4 text-gray-900">The Marketing Playbook</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-12">
+                    Apple's marketing success in India is built on a timeless philosophy of Empathy, Focus, and Impute, localized to connect with the Indian consumer. The following campaigns demonstrate how this strategy is brought to life, shifting perceptions and building deep brand affinity.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="campaign-card bg-white rounded-2xl shadow p-6" data-campaign="shot">
+                    <h3 class="font-bold text-xl text-gray-900">Shot on iPhone</h3>
+                    <p class="text-gray-600 mt-2">Transforming the iPhone from a luxury item to an essential creative tool through authentic user-generated content.</p>
+                    <div class="details mt-4 text-gray-700 space-y-2 text-sm">
+                        <p><strong>Strategy:</strong> Leverage authentic User-Generated Content (UGC) and high-profile collaborations with Indian filmmakers like Vishal Bhardwaj (*Fursat*) to prove the device's professional capabilities.</p>
+                        <p><strong>Impact:</strong> Shifted the conversation from "specs" to "creative possibilities," democratizing creativity and aligning with the aspirations of a young, creative India.</p>
+                    </div>
+                </div>
+                <div class="campaign-card bg-white rounded-2xl shadow p-6" data-campaign="relax">
+                    <h3 class="font-bold text-xl text-gray-900">Relax, It's iPhone</h3>
+                    <p class="text-gray-600 mt-2">Building trust by addressing a key purchase barrier: anxiety about durability in daily Indian life.</p>
+                    <div class="details mt-4 text-gray-700 space-y-2 text-sm">
+                        <p><strong>Strategy:</strong> Use culturally resonant scenarios, like the "Wreckshaw" ad, to showcase the toughness of the Ceramic Shield and build confidence in the product's longevity.</p>
+                        <p><strong>Impact:</strong> Provided powerful reassurance, reinforcing the long-term value proposition and making the premium investment feel more secure for consumers.</p>
+                    </div>
+                </div>
+                <div class="campaign-card bg-white rounded-2xl shadow p-6" data-campaign="mac">
+                    <h3 class="font-bold text-xl text-gray-900">Mac for Students</h3>
+                    <p class="text-gray-600 mt-2">Securing the next generation of professionals by embedding the Mac in the education ecosystem.</p>
+                    <div class="details mt-4 text-gray-700 space-y-2 text-sm">
+                        <p><strong>Strategy:</strong> Multi-year campaigns ("Work is Worth It," "Lessons") showcasing practical academic use cases and performance, paired with "Back to School" promotions.</p>
+                        <p><strong>Impact:</strong> Repositioned the Mac from a "premium laptop" to an "essential investment" in a student's future success, building a long-term pipeline for the Apple ecosystem.</p>
+                    </div>
+                </div>
+                 <div class="campaign-card bg-white rounded-2xl shadow p-6" data-campaign="festive">
+                    <h3 class="font-bold text-xl text-gray-900">Festive Engagement</h3>
+                    <p class="text-gray-600 mt-2">Weaving the brand into India's cultural fabric during key periods like Diwali.</p>
+                    <div class="details mt-4 text-gray-700 space-y-2 text-sm">
+                        <p><strong>Strategy:</strong> A dual approach combining accessible sales offers (No-cost EMI) with creative brand engagement ("Today at Apple" sessions with local artists, festive "Shot on iPhone" themes).</p>
+                        <p><strong>Impact:</strong> Drives significant sales while building a deep emotional connection, proving Apple is a brand that understands and celebrates Indian culture.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Growth Ecosystem -->
+        <section id="ecosystem" class="mb-20">
+            <div class="text-center">
+                <h2 class="text-4xl font-bold mb-4 text-gray-900">The Growth Ecosystem</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-12">
+                    Apple's strategy is a self-reinforcing flywheel. Local manufacturing makes products more accessible, driving hardware sales. This expanding user base supports a world-class retail experience and creates a massive opportunity for the high-margin Services business.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-2xl shadow flex flex-col items-center text-center">
+                    <span class="section-icon">🛍️</span>
+                    <h3 class="text-2xl font-bold mt-4 mb-2 text-gray-900">Retail Revolution</h3>
+                    <p class="text-gray-600">Flagship stores are more than sales channels; they are profitable brand embassies. The first two stores generate over <strong>₹190 crore</strong> each annually, paving the way for 4 new stores by 2025.</p>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow flex flex-col items-center text-center">
+                     <span class="section-icon">🏭</span>
+                    <h3 class="text-2xl font-bold mt-4 mb-2 text-gray-900">Make in India</h3>
+                    <p class="text-gray-600">Local manufacturing is the foundation of our growth. It de-risks the supply chain and enhances affordability, with India now assembling <strong>1 in 5 iPhones globally</strong>.</p>
+                    <div class="w-full mt-4">
+                        <h4 class="font-bold text-lg mb-2 text-gray-900">iPhone Assembly in India (% of Global)</h4>
+                        <div class="chart-container h-48">
+                            <canvas id="manufacturingChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow flex flex-col items-center text-center">
+                     <span class="section-icon">☁️</span>
+                    <h3 class="text-2xl font-bold mt-4 mb-2 text-gray-900">Services: The Next Frontier</h3>
+                    <p class="text-gray-600">With a growing hardware base, the Services division (Music, TV+, iCloud) is the key to future profitability. A dedicated marketing lead will accelerate growth in this high-margin area.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section 4: Future Outlook -->
+        <section id="future" class="mb-12">
+            <div class="text-center">
+                <h2 class="text-4xl font-bold mb-4 text-gray-900">Future Outlook & Competitive Edge</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-12">
+                    The outlook for Apple India is exceptionally positive, with projections pointing to continued dominance in the premium segment. Our strategic recommendations focus on scaling what works and expanding into new growth areas to sustain this momentum.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                <div class="lg:col-span-3 bg-white p-6 rounded-2xl shadow">
+                    <h3 class="font-bold text-xl mb-1 text-gray-900">The Premium Battleground</h3>
+                    <p class="text-gray-600 text-sm mb-4">Apple's integrated ecosystem provides a unique advantage over competitors who compete primarily on features.</p>
+                    <div class="flex justify-center space-x-2 mb-4">
+                        <button id="btn-phone" class="btn-toggle active px-4 py-2 text-sm font-semibold rounded-full bg-gray-200 text-gray-800">Premium Smartphones</button>
+                        <button id="btn-pc" class="btn-toggle px-4 py-2 text-sm font-semibold rounded-full bg-gray-200 text-gray-800">PC / Laptops</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="competitorChart"></canvas>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow flex flex-col justify-center">
+                    <h3 class="font-bold text-xl mb-4 text-gray-900">Growth Projections (2025+)</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="font-semibold text-gray-800">Annual Revenue Target</p>
+                            <p class="text-2xl font-bold text-blue-600">$15 Billion</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800">iPhone Shipments (2025)</p>
+                            <p class="text-2xl font-bold text-blue-600">13-14 Million Units</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800">"Make in India" Production (FY27)</p>
+                            <p class="text-2xl font-bold text-blue-600">$34+ Billion Value</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="bg-gray-100 border-t border-gray-200 mt-16">
+        <div class="container mx-auto py-6 px-6 text-center text-gray-500 text-sm">
+            <p>&copy; 2025 Interactive Analysis. All data synthesized from the "Project Deep Dive" report.</p>
+            <p>This is a conceptual application for data visualization and is not an official Apple Inc. publication.</p>
+        </div>
+    </footer>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const chartLabelColor = '#374151'; 
+    const chartGridColor = '#e5e7eb';
+
+    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+    Chart.defaults.color = chartLabelColor;
+    
+    // Data Store
+    const appData = {
+        financials: {
+            years: ['FY22', 'FY23', 'FY24'],
+            revenue: [33381, 49332, 67152],
+            profit: [null, 2230, 2746],
+        },
+        marketShare: {
+            volume: {
+                labels: ['Apple', 'Vivo', 'Samsung', 'Xiaomi', 'Others'],
+                data: [9.5, 20, 18, 13, 39.5],
+                colors: ['#2563eb', '#9ca3af', '#6b7280', '#4b5563', '#d1d5db']
+            },
+            value: {
+                labels: ['Apple', 'Samsung', 'Vivo', 'Others'],
+                data: [26, 23, 16, 35],
+                colors: ['#2563eb', '#6b7280', '#9ca3af', '#d1d5db']
+            }
+        },
+        manufacturing: {
+            years: ['FY23', 'FY24', 'FY25 (P)', 'FY27 (P)'],
+            percentage: [14, 20, 25, 32]
+        },
+        competitors: {
+            phone: {
+                labels: ['Apple', 'Samsung', 'Google'],
+                data: [28, 23, 2], // Super-premium segment share
+                title: 'Premium Smartphone Market Share (%)'
+            },
+            pc: {
+                labels: ['HP', 'Lenovo', 'Acer', 'Apple', 'Others'],
+                data: [30.3, 18.8, 15.9, 6.9, 28.1],
+                title: 'PC Market Share (Q4 2024, %)'
+            }
+        }
+    };
+
+    // Chart 1: Revenue
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'bar',
+        data: {
+            labels: appData.financials.years,
+            datasets: [{
+                label: 'Revenue (in INR crore)',
+                data: appData.financials.revenue,
+                backgroundColor: '#2563eb',
+                borderRadius: 5,
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (context) => `₹${context.raw.toLocaleString('en-IN')} Cr`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: chartGridColor },
+                    ticks: {
+                        callback: (value) => `${value/1000}K`
+                    }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // Chart 2 & 3: Market Share (Volume & Value)
+    const createDoughnutChart = (ctx, chartData) => {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    data: chartData.data,
+                    backgroundColor: chartData.colors,
+                    borderColor: '#f9fafb',
+                    borderWidth: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 15,
+                        }
+                    },
+                    tooltip: {
+                        callbacks: { label: (context) => ` ${context.label}: ${context.raw}%` }
+                    }
+                }
+            }
+        });
+    };
+    
+    const volumeCtx = document.getElementById('volumeShareChart').getContext('2d');
+    createDoughnutChart(volumeCtx, appData.marketShare.volume);
+    
+    const valueCtx = document.getElementById('valueShareChart').getContext('2d');
+    createDoughnutChart(valueCtx, appData.marketShare.value);
+
+    // Chart 4: Manufacturing
+    const manufacturingCtx = document.getElementById('manufacturingChart').getContext('2d');
+    new Chart(manufacturingCtx, {
+        type: 'line',
+        data: {
+            labels: appData.manufacturing.years,
+            datasets: [{
+                label: '% of Global iPhone Assembly',
+                data: appData.manufacturing.percentage,
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: '#2563eb',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: { label: (context) => ` ${context.raw}% of Global Production` }
+                }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: chartGridColor }, ticks: { callback: (value) => `${value}%` } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+    
+    // Chart 5: Competitor Chart
+    const competitorCtx = document.getElementById('competitorChart').getContext('2d');
+    let competitorChart = new Chart(competitorCtx, {
+        type: 'bar',
+        data: {
+            labels: appData.competitors.phone.labels,
+            datasets: [{
+                label: 'Market Share %',
+                data: appData.competitors.phone.data,
+                backgroundColor: ['#2563eb', '#6b7280', '#9ca3af'],
+                borderRadius: 5
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: appData.competitors.phone.title,
+                    color: chartLabelColor,
+                    font: { size: 14, weight: 'bold' }
+                }
+            },
+            scales: {
+                x: { grid: { color: chartGridColor }, ticks: { callback: (value) => `${value}%` } },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+
+    const btnPhone = document.getElementById('btn-phone');
+    const btnPc = document.getElementById('btn-pc');
+
+    const updateCompetitorChart = (type) => {
+        const newData = appData.competitors[type];
+        competitorChart.data.labels = newData.labels;
+        competitorChart.data.datasets[0].data = newData.data;
+        competitorChart.options.plugins.title.text = newData.title;
+        competitorChart.update();
+        
+        btnPhone.classList.toggle('active', type === 'phone');
+        btnPc.classList.toggle('active', type === 'pc');
+    };
+
+    btnPhone.addEventListener('click', () => updateCompetitorChart('phone'));
+    btnPc.addEventListener('click', () => updateCompetitorChart('pc'));
+
+
+    // Interactions
+    // Campaign Cards
+    const campaignCards = document.querySelectorAll('.campaign-card');
+    campaignCards.forEach(card => {
+        card.addEventListener('click', () => {
+            card.classList.toggle('open');
+        });
+    });
+
+    // Active Nav Link on Scroll
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.4 
+    };
+
+    const sectionObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href').substring(1) === entry.target.id) {
+              link.classList.add('active');
+            }
+          });
+        }
+      });
+    }, observerOptions);
+
+    sections.forEach(section => {
+      sectionObserver.observe(section);
+    });
+});
+</script>
+
+</body>
+</html>
